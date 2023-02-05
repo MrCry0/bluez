@@ -280,13 +280,56 @@ AC_ARG_ENABLE(client, AC_HELP_STRING([--disable-client],
 		[disable command line client]), [enable_client=${enableval}])
 AM_CONDITIONAL(CLIENT, test "${enable_client}" != "no")
 
-if (test "${enable_client}" != "no" || test "${enable_mesh}" = "yes"); then
-        AC_CHECK_HEADERS(readline/readline.h, enable_readline=yes,
-                AC_MSG_ERROR(readline header files are required))
-        READLINE_LIBS=-lreadline
+AC_ARG_WITH(readline,
+            AS_HELP_STRING([--with-readline=auto|readline|libedit|none], [use readline or libedit as readline library]),
+            [], [with_readline=auto])
+
+if (test "${with_readline}" != "none" &&
+    test "${with_readline}" != "auto" &&
+    test "${with_readline}" != "readline" &&
+    test "${with_readline}" != "libedit"); then
+        AC_MSG_ERROR([invalid --with-readline option])
 fi
-AM_CONDITIONAL(READLINE, test "${enable_readline}" = "yes")
-AC_SUBST(READLINE_LIBS)
+
+if (test "${enable_client}" != "no" ||
+    test "${enable_mesh}" = "yes"); then
+    if (test "${with_readline}" = "none"); then
+        AC_MSG_ERROR([--with-readline should not be "none" if client and/or mash enabled])
+    fi
+else
+    if (test "${with_readline}" = "auto"); then
+        with_readline=none
+    fi
+fi
+
+if (test "${with_readline}" != "none"); then
+    if (test "${with_readline}" = "auto"); then
+        PKG_CHECK_MODULES(READLINE, readline >= 8.1,
+            with_readline=readline,
+            PKG_CHECK_MODULES(READLINE, libedit >= 3.1,
+                with_readline=libedit,
+                found_readline=bo))
+    else if (test "${with_readline}" = "readline"); then
+        PKG_CHECK_MODULES(READLINE, readline >= 8.1,
+            with_readline=readline,
+            found_readline=no)
+        else
+            PKG_CHECK_MODULES(READLINE, libedit >= 3.1,
+                with_readline=libedit,
+                found_readline=no)
+        fi
+    fi
+
+    if (test "${found_readline}" = "yes"); then
+        AC_MSG_ERROR(library not found for --with-readline=$with_readline)
+    fi
+    AC_SUBST(READLINE_LIBS)
+    if (test "${with_readline}" = "libedit"); then
+        AC_DEFINE(HAVE_EDITLINE_READLINE, 1,
+                  [Explicitly set to 1 if libedit is used])
+    fi
+fi
+AM_CONDITIONAL(READLINE, test "${with_readline}" != "none")
 
 AC_ARG_ENABLE(systemd, AC_HELP_STRING([--disable-systemd],
 		[disable systemd integration]), [enable_systemd=${enableval}])
