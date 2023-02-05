@@ -22,8 +22,12 @@
 #include <errno.h>
 #include <stdio.h>
 
+#ifdef HAVE_EDITLINE_READLINE
+#include <editline/readline.h>
+#else
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 #include "gobex/gobex.h"
 #include "btio/btio.h"

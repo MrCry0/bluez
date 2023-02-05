@@ -18,7 +18,13 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <ctype.h>
+
+#ifdef HAVE_EDITLINE_READLINE
+#include <string.h>
+#include <editline/readline.h>
+#else
 #include <readline/readline.h>
+#endif
 
 #include "display.h"
 
@@ -30,6 +36,8 @@ static void *saved_user_data = NULL;
 void rl_printf(const char *fmt, ...)
 {
 	va_list args;
+
+#ifndef HAVE_EDITLINE_READLINE
 	bool save_input;
 	char *saved_line;
 	int saved_point;
@@ -43,11 +51,13 @@ void rl_printf(const char *fmt, ...)
 		rl_replace_line("", 0);
 		rl_redisplay();
 	}
+#endif
 
 	va_start(args, fmt);
 	vprintf(fmt, args);
 	va_end(args);
 
+#ifndef HAVE_EDITLINE_READLINE
 	if (save_input) {
 		rl_restore_prompt();
 		rl_replace_line(saved_line, 0);
@@ -55,6 +65,7 @@ void rl_printf(const char *fmt, ...)
 		rl_forced_update_display();
 		free(saved_line);
 	}
+#endif
 }
 
 void rl_hexdump(const unsigned char *buf, size_t len)
@@ -121,7 +132,9 @@ void rl_prompt_input(const char *label, const char *msg,
 								label, msg);
 	rl_set_prompt(prompt);
 
+#ifndef HAVE_EDITLINE_READLINE
 	rl_replace_line("", 0);
+#endif
 	rl_redisplay();
 }
 
@@ -136,7 +149,9 @@ int rl_release_prompt(const char *input)
 	/* This will cause rl_expand_prompt to re-run over the last prompt, but
 	 * our prompt doesn't expand anyway. */
 	rl_set_prompt(saved_prompt);
+#ifndef HAVE_EDITLINE_READLINE
 	rl_replace_line("", 0);
+#endif
 	rl_point = saved_point;
 	rl_redisplay();
 
