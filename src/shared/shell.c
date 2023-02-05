@@ -25,8 +25,12 @@
 #include <wordexp.h>
 #include <getopt.h>
 
+#ifdef HAVE_EDITLINE_READLINE
+#include <editline/readline.h>
+#else
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 #include "src/shared/mainloop.h"
 #include "src/shared/timeout.h"
@@ -531,9 +535,11 @@ static int shell_exec(int argc, char *argv[])
 void bt_shell_printf(const char *fmt, ...)
 {
 	va_list args;
+#ifndef HAVE_EDITLINE_READLINE
 	bool save_input;
 	char *saved_line;
 	int saved_point;
+#endif
 
 	if (!data.input)
 		return;
@@ -545,6 +551,7 @@ void bt_shell_printf(const char *fmt, ...)
 		return;
 	}
 
+#ifndef HAVE_EDITLINE_READLINE
 	save_input = !RL_ISSTATE(RL_STATE_DONE);
 
 	if (save_input) {
@@ -555,6 +562,7 @@ void bt_shell_printf(const char *fmt, ...)
 		rl_replace_line("", 0);
 		rl_redisplay();
 	}
+#endif
 
 	va_start(args, fmt);
 	vprintf(fmt, args);
@@ -566,6 +574,7 @@ void bt_shell_printf(const char *fmt, ...)
 		va_end(args);
 	}
 
+#ifndef HAVE_EDITLINE_READLINE
 	if (save_input) {
 		if (!data.saved_prompt)
 			rl_restore_prompt();
@@ -574,6 +583,7 @@ void bt_shell_printf(const char *fmt, ...)
 		rl_forced_update_display();
 		free(saved_line);
 	}
+#endif
 }
 
 static void print_string(const char *str, void *user_data)
@@ -602,7 +612,9 @@ static void prompt_input(const char *str, bt_shell_prompt_input_func func,
 	data.saved_func = func;
 	data.saved_user_data = user_data;
 
+#ifndef HAVE_EDITLINE_READLINE
 	rl_save_prompt();
+#endif
 	bt_shell_set_prompt(str);
 }
 
@@ -662,7 +674,9 @@ int bt_shell_release_prompt(const char *input)
 
 	data.saved_prompt = false;
 
+#ifndef HAVE_EDITLINE_READLINE
 	rl_restore_prompt();
+#endif
 
 	func = data.saved_func;
 	user_data = data.saved_user_data;
@@ -903,7 +917,9 @@ static char **menu_completion(const struct bt_shell_menu_entry *entry,
 			break;
 		}
 
+#ifndef HAVE_EDITLINE_READLINE
 		rl_completion_display_matches_hook = entry->disp;
+#endif
 		matches = rl_completion_matches(text, entry->gen);
 		break;
 	}
@@ -980,7 +996,9 @@ static void signal_callback(int signum, void *user_data)
 	switch (signum) {
 	case SIGINT:
 		if (data.input && !data.mode) {
+#ifndef HAVE_EDITLINE_READLINE
 			rl_replace_line("", 0);
+#endif
 			rl_crlf();
 			rl_on_new_line();
 			rl_redisplay();
@@ -998,7 +1016,9 @@ static void signal_callback(int signum, void *user_data)
 	case SIGTERM:
 		if (!terminated) {
 			if (!data.mode) {
+#ifndef HAVE_EDITLINE_READLINE
 				rl_replace_line("", 0);
+#endif
 				rl_crlf();
 			}
 			mainloop_quit();
@@ -1062,7 +1082,9 @@ static void rl_init(void)
 	setlinebuf(stdout);
 	rl_attempted_completion_function = shell_completion;
 
+#ifndef HAVE_EDITLINE_READLINE
 	rl_erase_empty_line = 1;
+#endif
 	rl_callback_handler_install(NULL, rl_handler);
 
 	rl_init_history();
@@ -1191,7 +1213,11 @@ static void rl_cleanup(void)
 	if (data.history[0] != '\0')
 		write_history(data.history);
 
+#ifndef HAVE_EDITLINE_READLINE
 	rl_message("");
+#else
+	rl_crlf();
+#endif
 	rl_callback_handler_remove();
 }
 
