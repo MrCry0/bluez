@@ -21,8 +21,14 @@
 #include <stdbool.h>
 #include <sys/uio.h>
 #include <wordexp.h>
+
+#ifdef HAVE_EDITLINE_READLINE
+#include <editline/readline.h>
+#else
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
+
 #include <glib.h>
 
 #include "src/shared/shell.h"

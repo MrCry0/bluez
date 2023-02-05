@@ -25,7 +25,7 @@ pkgincludedir = $(includedir)/bluetooth
 pkginclude_HEADERS =
 
 AM_CFLAGS = $(MISC_CFLAGS) $(WARNING_CFLAGS) $(UDEV_CFLAGS) $(LIBEBOOK_CFLAGS) \
-				$(LIBEDATASERVER_CFLAGS) $(ell_cflags)
+				$(LIBEDATASERVER_CFLAGS) $(READLINE_CFLAGS) $(ell_cflags)
 AM_LDFLAGS = $(MISC_LDFLAGS)
 
 confdir = $(sysconfdir)/bluetooth

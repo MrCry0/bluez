@@ -23,8 +23,12 @@
 #include <sys/signalfd.h>
 #include <glib.h>
 
+#ifdef HAVE_EDITLINE_READLINE
+#include <editline/readline.h>
+#else
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 #include "lib/bluetooth.h"
 #include "lib/sdp.h"
@@ -922,14 +926,18 @@ static gboolean signal_handler(GIOChannel *channel, GIOCondition condition,
 
 	switch (si.ssi_signo) {
 	case SIGINT:
+#ifndef HAVE_EDITLINE_READLINE
 		rl_replace_line("", 0);
+#endif
 		rl_crlf();
 		rl_on_new_line();
 		rl_redisplay();
 		break;
 	case SIGTERM:
 		if (__terminated == 0) {
+#ifndef HAVE_EDITLINE_READLINE
 			rl_replace_line("", 0);
+#endif
 			rl_crlf();
 			g_main_loop_quit(event_loop);
 		}
@@ -999,7 +1007,9 @@ int interactive(const char *src, const char *dst,
 	signal = setup_signalfd();
 
 	rl_attempted_completion_function = commands_completion;
+#ifndef HAVE_EDITLINE_READLINE
 	rl_erase_empty_line = 1;
+#endif
 	rl_callback_handler_install(get_prompt(), parse_line);
 
 	g_main_loop_run(event_loop);

@@ -302,8 +302,10 @@ AM_CONDITIONAL(CLIENT, test "${enable_client}" != "no")
 if (test "${enable_client}" != "no" || test "${enable_mesh}" = "yes"); then
         AC_CHECK_HEADERS(readline/readline.h, enable_readline=yes,
                 AC_MSG_ERROR(readline header files are required))
+        READLINE_LIBS=-lreadline
 fi
 AM_CONDITIONAL(READLINE, test "${enable_readline}" = "yes")
+AC_SUBST(READLINE_LIBS)
 
 AC_ARG_ENABLE(systemd, AS_HELP_STRING([--disable-systemd],
 		[disable systemd integration]), [enable_systemd=${enableval}])
