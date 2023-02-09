@@ -1257,7 +1257,7 @@ static bool media_player_send(struct media_player *mp, const char *name)
 	return true;
 }
 
-static bool play(void *user_data)
+static bool mp_play(void *user_data)
 {
 	struct media_player *mp = user_data;
 
@@ -1269,7 +1269,7 @@ static bool play(void *user_data)
 	return media_player_send(mp, "Play");
 }
 
-static bool stop(void *user_data)
+static bool mp_stop(void *user_data)
 {
 	struct media_player *mp = user_data;
 
@@ -1281,7 +1281,7 @@ static bool stop(void *user_data)
 	return media_player_send(mp, "Stop");
 }
 
-static bool pause(void *user_data)
+static bool mp_pause(void *user_data)
 {
 	struct media_player *mp = user_data;
 
@@ -1293,7 +1293,7 @@ static bool pause(void *user_data)
 	return media_player_send(mp, "Pause");
 }
 
-static bool next(void *user_data)
+static bool mp_next(void *user_data)
 {
 	struct media_player *mp = user_data;
 
@@ -1305,7 +1305,7 @@ static bool next(void *user_data)
 	return media_player_send(mp, "Next");
 }
 
-static bool previous(void *user_data)
+static bool mp_previous(void *user_data)
 {
 	struct media_player *mp = user_data;
 
@@ -1329,11 +1329,11 @@ static struct avrcp_player_cb player_cb = {
 	.get_status = get_status,
 	.get_name = get_player_name,
 	.set_volume = set_volume,
-	.play = play,
-	.stop = stop,
-	.pause = pause,
-	.next = next,
-	.previous = previous,
+	.play = mp_play,
+	.stop = mp_stop,
+	.pause = mp_pause,
+	.next = mp_next,
+	.previous = mp_previous,
 };
 
 static void media_player_exit(DBusConnection *connection, void *user_data)
